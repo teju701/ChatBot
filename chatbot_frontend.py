@@ -1,12 +1,20 @@
 import streamlit as st
 from langgraph_backend import chatbot
 from langchain_core.messages import HumanMessage
+import uuid
 
-CONFIG={'configurable':{'thread_id':'threadid-1'}}
+#*****************************************utility function*****************************************
+def generate_thread_id():
+    thread_id=uuid.uuid4()
+    return thread_id
 
 #*****************************************Session Setup*****************************************
 if 'message_history' not in st.session_state:
     st.session_state['message_history']=[]
+
+    if 'thread_id' not in st.session_state:
+        st.session_state['thread_id']=generate_thread_id()
+
 
 #****************************************Sidebar UI*****************************************
 
@@ -15,6 +23,8 @@ st.sidebar.title("LangGraph Chatbot")
 st.sidebar.button("new chat")
 
 st.sidebar.header("My Conversation")
+
+st.sidebar.text(st.session_state['thread_id'])
 
 #******************************************Main Ui******************************************
 #to print old messags:-it loops through all the previos conversation and print it on the display
@@ -27,13 +37,15 @@ if user_input:
     st.session_state['message_history'].append({'role':'user','content':user_input})
     with st.chat_message('user'):
         st.write(user_input)
+        
+    CONFIG={'configurable':{'thread_id': st.session_state['thread_id']}}
 
     with st.chat_message('assistant'):
 
         ai_message=st.write_stream(
             message_chunk.content for message_chunk, metadata in chatbot.stream(
                 {'messages':[HumanMessage(content=user_input)]},
-                config={'configurable':{'thread_id':'threadid-1'}},
+                config=CONFIG,
                 stream_mode='messages'
             )
         )
