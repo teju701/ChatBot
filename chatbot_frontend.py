@@ -8,23 +8,40 @@ def generate_thread_id():
     thread_id=uuid.uuid4()
     return thread_id
 
+def reset_chat():
+    thread_id=generate_thread_id()
+    st.session_state['thread_id']=thread_id
+    add_thread(st.session_state['thread_id'])
+    st.session_state['message_history']=[]
+
+def add_thread(thread_id):
+    if thread_id not in st.session_state['chat_threads']:
+        st.session_state['chat_threads'].append(thread_id)
+                                                
 #*****************************************Session Setup*****************************************
 if 'message_history' not in st.session_state:
     st.session_state['message_history']=[]
 
-    if 'thread_id' not in st.session_state:
-        st.session_state['thread_id']=generate_thread_id()
+if 'thread_id' not in st.session_state:
+    st.session_state['thread_id']=generate_thread_id()
 
+if 'chat_threads' not in st.session_state:
+    st.session_state['chat_threads']=[]
+   
+add_thread(st.session_state['thread_id'])
 
 #****************************************Sidebar UI*****************************************
 
 st.sidebar.title("LangGraph Chatbot")
 
-st.sidebar.button("new chat")
+if st.sidebar.button("new chat"):
+    reset_chat()
 
 st.sidebar.header("My Conversation")
 
-st.sidebar.text(st.session_state['thread_id'])
+for thread_id in st.session_state['chat_threads']:
+    st.sidebar.button(str(thread_id))
+
 
 #******************************************Main Ui******************************************
 #to print old messags:-it loops through all the previos conversation and print it on the display
